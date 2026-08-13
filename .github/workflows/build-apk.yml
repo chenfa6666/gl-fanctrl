@@ -2,7 +2,7 @@ name: build-apk
 on:
   push:
     branches: ["**"]
-    tags: ["v*"]
+    tags: ["**"]
   pull_request:
   workflow_dispatch:
     inputs:
@@ -77,5 +77,6 @@ jobs:
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             gh release upload "$RELEASE_TAG" dist/*.apk --clobber
           else
-            gh release create "$RELEASE_TAG" dist/*.apk --target "$GITHUB_SHA" --title "$RELEASE_TAG" --notes "$notes" "${flags[@]}"
+            gh release create "$RELEASE_TAG" dist/*.apk --target "$GITHUB_SHA" --title "$RELEASE_TAG" --notes "$notes" "${flags[@]}" || \
+              gh release upload "$RELEASE_TAG" dist/*.apk --clobber
           fi
