@@ -1,9 +1,8 @@
 name: build-ipk
-
 on:
   push:
     branches: ["**"]
-    tags: ["v*"]
+    tags: ["**"]
   pull_request:
   workflow_dispatch:
     inputs:
@@ -16,7 +15,6 @@ on:
         required: false
         default: false
         type: boolean
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -77,5 +75,6 @@ jobs:
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             gh release upload "$RELEASE_TAG" dist/*.ipk --clobber
           else
-            gh release create "$RELEASE_TAG" dist/*.ipk --target "$GITHUB_SHA" --title "$RELEASE_TAG" --notes "$notes" "${flags[@]}"
+            gh release create "$RELEASE_TAG" dist/*.ipk --target "$GITHUB_SHA" --title "$RELEASE_TAG" --notes "$notes" "${flags[@]}" || \
+              gh release upload "$RELEASE_TAG" dist/*.ipk --clobber
           fi
