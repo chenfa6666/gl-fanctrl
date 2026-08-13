@@ -91,13 +91,8 @@ const depends = (control.Depends || '')
 const license = control.License || 'GPL-2.0';
 const homepage = control.Homepage || control.URL || '';
 
-// ipk conffiles -> apk backup list (config files preserved on upgrade).
-let backup = '';
-const conffilesPath = path.join(root, 'package/control/conffiles');
-if (fs.existsSync(conffilesPath)) {
-  backup = fs.readFileSync(conffilesPath, 'utf8')
-    .split('\n').map(s => s.trim()).filter(Boolean).join(' ');
-}
+// /etc/ files are automatically treated as conffiles by apk-tools on upgrade,
+// so we do not need to emit an explicit backup field.
 
 // ipk maintainer scripts -> apk script slots.
 // postinst -> post-install, prerm -> pre-deinstall, postrm -> post-deinstall.
@@ -129,7 +124,6 @@ if (maintainer) args.push('--info', `maintainer:${maintainer}`);
 if (homepage) args.push('--info', `url:${homepage}`);
 args.push('--info', `provides:${pkgName}=${apkVersion}`);
 if (depends) args.push('--info', `depends:${depends}`);
-if (backup) args.push('--info', `backup:${backup}`);
 for (const apkName of stagedScripts) {
   args.push('--script', `${apkName}:${path.join(scriptsDir, apkName)}`);
 }
