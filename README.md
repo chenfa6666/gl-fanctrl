@@ -156,26 +156,31 @@ npm run lint:shell
 npm run lint:lua
 ```
 ## GitHub Actions
-仓库已包含两个工作流：
+仓库使用同一个工作流文件，两个 job 并行构建 IPK 和 APK：
 ```text
-.github/workflows/build-ipk.yml   # 在 ubuntu-latest 上构建 IPK
-.github/workflows/build-apk.yml   # 在 alpine:3.23 容器中构建 APK（自带 apk mkpkg）
+.github/workflows/build.yml       # build-ipk job (ubuntu-latest) + build-apk job (alpine:3.23, apk mkpkg)
 ```
-每次 push 或 pull request 会执行：
+每次 push 或 pull request 会并行执行：
 1. 检查 shell 脚本语法
 2. 检查 Lua 文件语法
-3. 构建包（IPK / APK）
+3. 构建包（IPK + APK）
 4. 检查包内容
-5. 上传 `dist/*.ipk` 或 `dist/*.apk` artifact
+5. 上传 `dist/*.ipk` 与 `dist/*.apk` artifact
 Release 上传规则：
 - 普通分支 push 和 pull request 只上传 Actions artifact，不创建 Release。
-- 推送 `v*` 标签时，例如 `v0.1.0`，会自动创建或更新同名 GitHub Release，并上传对应的 IPK 与 APK。
-- 也可以在 GitHub Actions 页面手动运行 workflow。手动运行时可填写 release tag；留空则使用 `package.json` 中的版本生成 `vX.Y.Z`。
+- 推送**任意名字**的 tag 时（`0.1.0`、`v0.1.0`、`V0.1.0` 都支持），会自动创建或更新同名 GitHub Release，并**同时**上传 IPK 与 APK 到同一个 Release 页。
+- 也可以在 GitHub Actions 页面手动运行 workflow。手动运行时可填写 release tag（例如补旧 release 的 apk）；留空则使用 `package.json` 中的版本生成 `vX.Y.Z`。
+
 发布一个正式版本：
 ```sh
-git tag v0.1.0
-git push origin v0.1.0
+git tag 0.1.0
+git push origin 0.1.0
 ```
+
+补已有 Release 的 APK（例如历史 release 只有 ipk、现在想补 apk）：
+1. 打开 [Actions → build](https://github.com/chenfa6666/gl-fanctrl/actions/workflows/build.yml)
+2. 右上角 **Run workflow**，`tag` 填写已存在的 release tag（如 `0.1.4`），再点运行
+3. 完成后 IPK 和 APK 会都出现在该 release 的资产列表里
 ## 安装
 IPK（opkg 固件，如 OpenWrt 21/22）：
 ```sh
@@ -239,8 +244,7 @@ lua -e 'assert(loadfile("/usr/lib/oui-httpd/rpc/fanctrl")); assert(loadfile("/us
 ```text
 .
 ├── .github/workflows/
-│   ├── build-ipk.yml
-│   └── build-apk.yml
+│   └── build.yml                  # build-ipk + build-apk 两 job 并行
 ├── package/
 │   ├── control/                  # control、postinst、prerm、postrm、conffiles
 │   └── data/                     # 安装到路由器的文件树
