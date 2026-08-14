@@ -122,7 +122,9 @@ if (license) args.push('--info', `license:${license}`);
 args.push('--info', `origin:${pkgName}`);
 if (maintainer) args.push('--info', `maintainer:${maintainer}`);
 if (homepage) args.push('--info', `url:${homepage}`);
-args.push('--info', `provides:${pkgName}=${apkVersion}`);
+// Do NOT emit an explicit `provides:<name>=<version>`: in apk-tools a package
+// automatically provides its own name=version. Adding it again makes apk see
+// two identical providers and fail with "conflicts: ...[<name>=<ver>]".
 if (depends) args.push('--info', `depends:${depends}`);
 for (const apkName of stagedScripts) {
   args.push('--script', `${apkName}:${path.join(scriptsDir, apkName)}`);
